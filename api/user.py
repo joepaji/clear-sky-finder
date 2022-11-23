@@ -13,6 +13,7 @@ from sqlalchemy import exc
 from flask_restful import Resource, request
 import re
 from extensions import db, ma
+from exceptions import APIException
 
 user = Blueprint('user', __name__, template_folder='templates')
 
@@ -121,4 +122,27 @@ class UserManager(Resource):
 
         return jsonify({
             'Message': f'User {user.username} altered'
+        })
+
+    @user.route('/delete', methods=['DELETE'])
+    def delete_user():
+        try:
+            id = request.args['id']
+        except Exception as _: 
+            id = None
+        
+        if not id:
+            return jsonify({
+                'Message': 'Must provide user ID to delete'
+            })
+        
+        user = User.query.get(id)
+        if not user:
+            raise APIException("User does not exist")
+        
+        db.session.delete(user)
+        db.session.commit()
+
+        return jsonify({
+            'Message': f'User {str(id)} deleted'
         })

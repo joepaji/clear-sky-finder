@@ -39,6 +39,7 @@ def register_extensions(app):
     """
     db.init_app(app)
     ma.init_app(app)
+    
     return None
 
 def register_blueprints(app):

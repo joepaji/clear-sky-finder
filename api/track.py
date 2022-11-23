@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify
 from sqlalchemy import exc
 from flask_restful import Resource, request
 import re
-from extensions import db, ma
+from extensions import db, ma, session
 from user import User, UserSchema
 from exceptions import APIException
 
@@ -37,7 +37,8 @@ class TrackManager(Resource):
         except Exception as _:
             user_id = None
         schema = TrackSchema(many=True)
-        locations = Track.query.get(user_id)
+        #locations = Track.query.get(user_id)
+        locations = session.get(Track, user_id)
         return jsonify(schema.dump(locations))
         
     @track.route('/post', methods=["POST"])
@@ -47,9 +48,9 @@ class TrackManager(Resource):
         except KeyError:
             return jsonify({'Message': 'Error! user_id is required.'})
         user_schema = UserSchema()
-        user = User.query.get(user_id)
-        response = jsonify(user_schema.dump(user))
-        if len(response.get_json()) == 0:
+        user = session.get(User, user_id)
+        #response = jsonify(user_schema.dump(user))
+        if not user:
             raise APIException("User does not exist")
         
         user_id = request.json['user_id']
@@ -95,9 +96,10 @@ class TrackManager(Resource):
     @track.route('/test', methods=['GET'])
     def test():
         user_schema = UserSchema()
-        user = User.query.get(0)
-        response = jsonify(user_schema.dump(user))
-        if len(response.get_json()) == 0:
+        #user = User.query.get(1)
+        user = session.get(User, 1)
+        print(user)
+        if not user:
             raise APIException("User does not exist")
         
         return jsonify(user_schema.dump(user))
