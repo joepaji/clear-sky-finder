@@ -127,3 +127,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Virtual environment
+venv/
+
+# Database config file
+db_config.py
