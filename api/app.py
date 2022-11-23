@@ -13,10 +13,13 @@ from flask_marshmallow import Marshmallow
 from db_config import HOST, USER, PASSWORD
 from extensions import db, ma
 from user import user as user_bp
+from track import track as track_bp
+from exceptions import exception as exception_bp
+#from exceptions import exception_handler
 
 app = Flask(__name__)
-prefix = '/v1'
 ma = Marshmallow(app)
+prefix = '/v1'
 
 def create_app():
     """
@@ -43,6 +46,8 @@ def register_blueprints(app):
     Registers all blueprints
     """
     app.register_blueprint(user_bp, url_prefix=f'{prefix}/user/')
+    app.register_blueprint(track_bp, url_prefix=f'{prefix}/track/')
+    app.register_blueprint(exception_bp)
     return None
 
 if __name__ == '__main__':
