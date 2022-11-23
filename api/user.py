@@ -8,10 +8,10 @@
 Code for routes and database for the '/v1/user' endpoint.
 """
 
-from flask import Flask, Blueprint, jsonify
-from flask_sqlalchemy import SQLAlchemy
-from flask_marshmallow import Marshmallow
-from flask_restful import Resource, request, Api
+from flask import Blueprint, jsonify
+from sqlalchemy import exc
+from flask_restful import Resource, request
+import re
 from extensions import db, ma
 
 user = Blueprint('user', __name__, template_folder='templates')
@@ -42,7 +42,7 @@ class UserManager(Resource):
     """
     API calls pertaining to /api/v1/user/
     """
-    @user.route('/get/', methods = ['GET'])
+    @user.route('/get', methods = ['GET'])
     @user.route('/get/<user_id>', methods = ['GET'])
     def get_user(user_id=None):     
         user_schema = UserSchema()
@@ -63,9 +63,62 @@ class UserManager(Resource):
 
         user = User(email, username, password, first_name, last_name)
 
-        db.session.add(user)
-        db.session.commit()
+        try:
+            db.session.add(user)
+            db.session.commit()
+        except exc.IntegrityError as err:
+            db.session.rollback()
+            errorInfo = err.orig.args
+            message = errorInfo[1]
+            email = re.findall('\'(.+?)\'', message)
+            duplicate_email = '0'
+            if email:
+                value = email[0]
+                key = email[1].split('.')[1]
+            return jsonify({
+                'Message': f'Error! User with {key} \'{value}\' already exists.'
+            })
 
         return jsonify({
             'Message': f'User {username} has been inserted.'
+        })
+    
+    @user.route('/put/', methods=['PUT'])
+    def update_user():
+        try:
+            id = request.args['id']
+        except Exception as _:
+            id = None
+        
+        if not id:
+            return jsonify({'Message': 'Must provide user ID'})
+        
+        user = User.query.get(id)
+
+        try:
+            email = request.json['email']
+        except Exception as _:
+            email = user.email
+        try:
+            password = request.json['password']
+        except Exception as _:
+            password = user.password
+        try:
+            first_name = request.json['first_name']
+        except Exception as _:
+            first_name = user.first_name
+        try:
+            last_name = request.json['last_name']
+        except Exception as _:
+            last_name = user.last_name
+        
+        user.email = email
+        user.password = password
+        user.first_name = first_name
+        user.last_name = last_name
+
+        db.session.commit()
+
+        return jsonify({
+            'Message': f'User {user.username} altered'
         })
