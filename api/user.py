@@ -8,7 +8,7 @@
 Code for routes and database for the '/v1/user' endpoint.
 """
 
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, escape
 from sqlalchemy import exc
 from sqlalchemy.sql import select
 from flask_restful import Resource, request
@@ -86,7 +86,7 @@ class UserManager(Resource):
             })
 
         return jsonify({
-            'Message': f'User {username} has been inserted.'
+            'Message': f'User {escape(username)} has been inserted.'
         })
     
     @user.route('/put/', methods=['PUT'])
@@ -149,5 +149,5 @@ class UserManager(Resource):
         db.session.commit()
 
         return jsonify({
-            'Message': f'User {str(id)} deleted'
+            'Message': f'User {escape(id)} deleted'
         })
