@@ -10,6 +10,7 @@ Your one liner release notes here
 - [ ] Bug fix
 - [ ] Enhancement
 - [ ] Documentation
+- [ ] Other: 
 
 ### Pull request size
 - [ ] Tiny
@@ -17,7 +18,7 @@ Your one liner release notes here
 - [ ] Medium
 - [ ] Large
 
-#### Describe the old behaviour you are changing
+#### Describe the old behavior you are changing
 1. 
 2. 
 3. 
