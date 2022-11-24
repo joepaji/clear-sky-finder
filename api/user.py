@@ -10,6 +10,7 @@ Code for routes and database for the '/v1/user' endpoint.
 
 from flask import Blueprint, jsonify
 from sqlalchemy import exc
+from sqlalchemy.sql import select
 from flask_restful import Resource, request
 import re
 from extensions import db, ma
@@ -43,18 +44,23 @@ class UserManager(Resource):
     """
     API calls pertaining to /api/v1/user/
     """
-    @user.route('/get', methods = ['GET'])
-    @user.route('/get/<user_id>', methods = ['GET'])
-    def get_user(user_id=None):     
+    @user.route('/get/', methods = ['GET'])
+    #@user.route('/get/<user_id>', methods = ['GET'])
+    def get_user(user_id=None):
+        try:
+            user_id = request.args['id']
+        except Exception as _:
+            user_id = None     
         user_schema = UserSchema()
         users_schema =UserSchema(many=True)
         if not user_id:
-            users = User.query.all()
+            statement = select(User)
+            users = db.session.execute(statement).scalars().all()
             return jsonify(users_schema.dump(users))
-        user = User.query.get(user_id)
+        user = db.session.get(User, user_id)
         return jsonify(user_schema.dump(user))
 
-    @user.route('/post', methods = ['POST'])
+    @user.route('/post/', methods = ['POST'])
     def add_user():
         email = request.json['email']
         username = request.json['username']
@@ -72,7 +78,6 @@ class UserManager(Resource):
             errorInfo = err.orig.args
             message = errorInfo[1]
             email = re.findall('\'(.+?)\'', message)
-            duplicate_email = '0'
             if email:
                 value = email[0]
                 key = email[1].split('.')[1]
@@ -94,7 +99,7 @@ class UserManager(Resource):
         if not id:
             return jsonify({'Message': 'Must provide user ID'})
         
-        user = User.query.get(id)
+        user = db.session.get(User, id)
 
         try:
             email = request.json['email']
@@ -124,7 +129,7 @@ class UserManager(Resource):
             'Message': f'User {user.username} altered'
         })
 
-    @user.route('/delete', methods=['DELETE'])
+    @user.route('/delete/', methods=['DELETE'])
     def delete_user():
         try:
             id = request.args['id']
@@ -136,9 +141,9 @@ class UserManager(Resource):
                 'Message': 'Must provide user ID to delete'
             })
         
-        user = User.query.get(id)
+        user = db.session.get(User, id)
         if not user:
-            raise APIException("User does not exist")
+            raise APIException("User does not exist", 404)
         
         db.session.delete(user)
         db.session.commit()

@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify
 from sqlalchemy import exc
 from flask_restful import Resource, request
 import re
-from extensions import db, ma, session
+from extensions import db, ma
 from user import User, UserSchema
 from exceptions import APIException
 
@@ -38,20 +38,20 @@ class TrackManager(Resource):
             user_id = None
         schema = TrackSchema(many=True)
         #locations = Track.query.get(user_id)
-        locations = session.get(Track, user_id)
+        locations = db.session.get(Track, user_id)
         return jsonify(schema.dump(locations))
         
-    @track.route('/post', methods=["POST"])
+    @track.route('/post/', methods=["POST"])
     def add_location():
         try:
             user_id = request.json['user_id']
         except KeyError:
             return jsonify({'Message': 'Error! user_id is required.'})
         user_schema = UserSchema()
-        user = session.get(User, user_id)
+        user = db.session.get(User, user_id)
         #response = jsonify(user_schema.dump(user))
         if not user:
-            raise APIException("User does not exist")
+            raise APIException("User does not exist", 404)
         
         user_id = request.json['user_id']
         try:
@@ -93,13 +93,13 @@ class TrackManager(Resource):
 
         
 
-    @track.route('/test', methods=['GET'])
+    @track.route('/test/', methods=['GET'])
     def test():
         user_schema = UserSchema()
         #user = User.query.get(1)
-        user = session.get(User, 0)
+        user = db.session.get(User, 0)
         print(user)
         if not user:
-            raise APIException("User does not exist")
+            raise APIException("User does not exist", 404)
         
         return jsonify(user_schema.dump(user))
