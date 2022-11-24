@@ -97,7 +97,7 @@ class TrackManager(Resource):
     def test():
         user_schema = UserSchema()
         #user = User.query.get(1)
-        user = session.get(User, 1)
+        user = session.get(User, 0)
         print(user)
         if not user:
             raise APIException("User does not exist")

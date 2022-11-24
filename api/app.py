@@ -8,7 +8,7 @@
 A RESTful API for the Clear Sky Finder app built using Flask.
 This API works with a MySQL Database to provide app functions.
 """
-from flask import Flask
+from flask import Flask, Blueprint
 from flask_marshmallow import Marshmallow
 from db_config import HOST, USER, PASSWORD
 from extensions import db, ma
@@ -16,10 +16,6 @@ from user import user as user_bp
 from track import track as track_bp
 from exceptions import exception as exception_bp
 #from exceptions import exception_handler
-
-app = Flask(__name__)
-ma = Marshmallow(app)
-prefix = '/v1'
 
 def create_app():
     """
@@ -33,7 +29,7 @@ def create_app():
     register_blueprints(app)
     return app
 
-def register_extensions(app):
+def register_extensions(app:Flask):
     """
     Initializes extensions
     """
@@ -42,13 +38,15 @@ def register_extensions(app):
     
     return None
 
-def register_blueprints(app):
+def register_blueprints(app:Flask):
     """
     Registers all blueprints
     """
-    app.register_blueprint(user_bp, url_prefix=f'{prefix}/user/')
-    app.register_blueprint(track_bp, url_prefix=f'{prefix}/track/')
-    app.register_blueprint(exception_bp)
+    parent = Blueprint('parent', __name__, url_prefix='/v1/')
+    parent.register_blueprint(user_bp, url_prefix='/user/')
+    parent.register_blueprint(track_bp, url_prefix='/track/')
+    parent.register_blueprint(exception_bp)
+    app.register_blueprint(parent)
     return None
 
 if __name__ == '__main__':
