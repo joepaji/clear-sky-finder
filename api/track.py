@@ -12,22 +12,25 @@ class Track(db.Model):
     """
     Database model for the User table
     """
-    user_id = db.Column(db.Integer, primary_key=True)
+    location_id = db.Column(db.Integer, primary_key = True)
+    user_id = db.Column(db.Integer)
     city = db.Column(db.String(120))
     state = db.Column(db.String(120))
     zip = db.Column(db.Integer)
     lat = db.Column(db.Float(8), nullable=False)
     long = db.Column(db.Float(8), nullable=False)
 
-    def __init__(self, user_id, city, state, zip):
+    def __init__(self, user_id, city, state, zip, lat, long):
         self.user_id = user_id
         self.city = city
         self.state = state
         self.zip = zip
+        self.lat = lat
+        self.long = long
 
 class TrackSchema(ma.Schema):
     class Meta:
-        fields = ('user_id', 'city', 'state', 'zip', 'lat', 'long')
+        fields = ('location_id', 'user_id', 'city', 'state', 'zip', 'lat', 'long')
 
 class TrackManager(Resource):
     @track.route('/get', methods=['GET'])
