@@ -32,8 +32,7 @@ body:
     description: |
       Enter any related or dependent issues.
     placeholder: |
-      - <!--- Enter related issues here --->
-    value: - |
+      • <!--- Enter related issues here --->
   validations:
     required: false
 - type: textarea
@@ -42,7 +41,6 @@ body:
     description: |
       Please provide a list of requirements or dependencies for this feature.
     placeholder: |
-      - <!--- Enter requirements here --->
-    value: - |    
+      • <!--- Enter requirements here --->  
   validations:
     required: False
