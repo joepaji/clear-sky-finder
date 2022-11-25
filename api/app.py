@@ -14,6 +14,7 @@ from db_config import HOST, USER, PASSWORD
 from extensions import db, ma
 from user import user as user_bp
 from track import track as track_bp
+from clouds import clouds as clouds_bp
 from exceptions import exception as exception_bp
 #from exceptions import exception_handler
 
@@ -45,6 +46,7 @@ def register_blueprints(app:Flask):
     parent = Blueprint('parent', __name__, url_prefix='/v1/')
     parent.register_blueprint(user_bp, url_prefix='/user/')
     parent.register_blueprint(track_bp, url_prefix='/track/')
+    parent.register_blueprint(clouds_bp, url_prefix='/clouds/')
     parent.register_blueprint(exception_bp)
     app.register_blueprint(parent)
     return None

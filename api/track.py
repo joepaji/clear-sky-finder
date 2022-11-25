@@ -19,7 +19,7 @@ track = Blueprint('track', __name__, template_folder='templates')
 
 class Track(db.Model):
     """
-    Database model for the User table
+    Database model for the Track table
     """
     location_id = db.Column(db.Integer, primary_key = True)
     user_id = db.Column(db.Integer)
