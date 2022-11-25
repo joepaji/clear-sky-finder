@@ -9,11 +9,11 @@ from sqlalchemy import exc
 from sqlalchemy.sql.expression import select
 from flask_restful import Resource, request
 from geopy import Nominatim
-import re
 from extensions import db, ma, session
 from user import User
 from location import get_location, generate_unique_location_id
 from exceptions import APIException
+import re
 
 track = Blueprint('track', __name__, template_folder='templates')
 
@@ -51,6 +51,9 @@ class TrackManager(Resource):
             return jsonify({
                 "Message": "User id required"
             })
+        user = session.get(User, user_id)
+        if not user:
+            raise APIException("User does not exist", 404)
         schema = TrackSchema(many=True)
         statement = select(Track).where(Track.user_id == user_id)
         locations = session.execute(statement).scalars().all()
