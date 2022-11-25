@@ -57,7 +57,7 @@ def generate_unique_location_id(lat, long, user_id):
     """
     Generate a unique location id based on given coordinates.
     """
-    lat = cantor.pair(abs(int(float(lat))),int(user_id))
+    #lat = cantor.pair(abs(int(float(lat))),int(user_id))
     try:
         lat_double = None
         lon_double = None
@@ -72,7 +72,7 @@ def generate_unique_location_id(lat, long, user_id):
 
         lat_int = int((lat_double * 1e7))
         lon_int = int((lon_double * 1e7))
-        val = abs(lat_int << 16 & 0xffff0000 | lon_int & 0x0000ffff)
+        val = abs(lat_int + user_id << 16 & 0xffff0000 | lon_int + user_id & 0x0000ffff)
         val = val % 2147483647
         return val
     except Exception as e:

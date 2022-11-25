@@ -128,7 +128,7 @@ class TrackManager(Resource):
         result = geolocator.reverse(f"{lat},{long}")
         lat = 33.3618813
         long = -112.1533861
-        location_id = generate_unique_location_id(lat, long)
+        location_id = generate_unique_location_id(lat, long, 1)
         
         return jsonify({
             "Message": str(result),
