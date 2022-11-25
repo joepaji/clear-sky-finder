@@ -8,7 +8,6 @@
 Location class used to manage get location function and location object
 """
 from geopy import Nominatim
-from pairing_functions import cantor
 
 class Location:
     def __init__(self, city, state, zip, lat, long):
@@ -57,7 +56,6 @@ def generate_unique_location_id(lat, long, user_id):
     """
     Generate a unique location id based on given coordinates.
     """
-    #lat = cantor.pair(abs(int(float(lat))),int(user_id))
     try:
         lat_double = None
         lon_double = None
