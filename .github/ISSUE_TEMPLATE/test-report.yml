@@ -1,80 +1,50 @@
-name: "\U0001F41E Report a problem"
-description: "Report an issue with ESLint or rules bundled with ESLint"
+name: "Bug Report"
+description: "Report an issue bug or issue"
 title: "Bug: (fill in)"
 labels:
   - bug
-  - "repro:needed"
 body:
 - type: markdown
   attributes:
-    value: By opening an issue, you agree to abide by the [Open JS Foundation Code of Conduct](https://eslint.org/conduct).
+    value: "# Bug Report"
 - type: textarea
   attributes:
-    label: Environment
+    label: Issue Description
     description: |
-      Please tell us about how you're running ESLint (Run `npx eslint --env-info`.)
+      Enter a detailed description of the issue.
+    placeholder: |
+      • Endpoint example/v1/test returns x when y is expected
+      • App should not add x to database as it will cause y 
+  validations:
+    required: true
+- type: textarea
+  attributes:
+    label: Steps to reproduce
+    description: |
+      Enter the steps taken to reproduce the issue.
     value: |
-        Node version: 
-        npm version: 
-        Local ESLint version: 
-        Global ESLint version: 
-        Operating System: 
+      1.
+      2.
+      3.
   validations:
     required: true
-- type: dropdown
+- type: input
   attributes:
-    label: What parser are you using?
+    label: Reproduction endpoint
     description: |
-      Please keep in mind that some problems are parser-specific.
-    options:
-      - "Default (Espree)"
-      - "@typescript-eslint/parser"
-      - "@babel/eslint-parser"
-      - "vue-eslint-parser"
-      - "@angular-eslint/template-parser"
-      - Other
-  validations:
-    required: true
-- type: textarea
-  attributes:
-    label: What did you do?
-    description: |
-      Please include a *minimal* reproduction case. If possible, include a link to a reproduction of the problem in the [ESLint demo](https://eslint.org/demo). Otherwise, include source code, configuration file(s), and any other information about how you're using ESLint. You can use Markdown in this field.
+      Enter the API endpoint causing the issue (if applicable).
     value: |
-      <details>
-      <summary>Configuration</summary>
-
-      ```
-      <!-- Paste your configuration here -->
-      ```
-      </details>
-
-      ```js
-      <!-- Paste your code here -->
-      ```
+      `<!--- Paste the API endpoint here --->`
   validations:
-    required: true
+    required: false
 - type: textarea
   attributes:
-    label: What did you expect to happen?
+    label: Logs
     description: |
-      You can use Markdown in this field.
+      Please provide relevant logs (if applicable).
+    value: |
+      ```
+      <!--- Paste logs here --->
+      ```  
   validations:
-    required: true
-- type: textarea
-  attributes:
-    label: What actually happened?
-    description: |
-      Please copy-paste the actual ESLint output. You can use Markdown in this field.
-  validations:
-    required: true
-- type: checkboxes
-  attributes:
-    label: Participation
-    options:
-      - label: I am willing to submit a pull request for this issue.
-        required: false
-- type: textarea
-  attributes:
-    label: Additional comments
-    description: Is there anything else that's important for the team to know?
+    required: False
