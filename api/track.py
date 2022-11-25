@@ -4,7 +4,7 @@
 # Created Date: 11/23/2022
 # version = '0.10'
 # ------------------------------------------------------------------
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, escape
 from sqlalchemy import exc
 from sqlalchemy.sql.expression import select
 from flask_restful import Resource, request
@@ -120,6 +120,26 @@ class TrackManager(Resource):
             "Message": f"Inserted location id {location_id}"
         })
 
+    @track.route('/delete/', methods=['DELETE'])
+    def remove_location():
+        try:
+            location_id = request.args['location_id']
+        except Exception as _:
+            return jsonify({
+                "Message": f"location_id is required"
+            })
+        location = session.get(Track, location_id)
+        if not location:
+            return jsonify({
+                "Message": f"Location id {escape(location_id)} does not exist in the watchlist"
+            })
+        session.delete(location)
+        session.commit()
+
+        return jsonify({
+            "Message": f"Location id {escape(location_id)} has been removed"
+        })
+
     @track.route('/test/', methods=['GET'])
     def test():
         geolocator = Nominatim(user_agent='clear-sky-finder')
@@ -140,4 +160,3 @@ class TrackManager(Resource):
             "long": long,
             "Location ID": location_id
         })
-
