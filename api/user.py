@@ -12,9 +12,10 @@ from flask import Blueprint, jsonify, escape
 from sqlalchemy import exc
 from sqlalchemy.sql.expression import select
 from flask_restful import Resource, request
-import re
 from extensions import db, ma, session
 from exceptions import APIException
+import re
+
 user = Blueprint('user', __name__, template_folder='templates')
 
 class User(db.Model):
