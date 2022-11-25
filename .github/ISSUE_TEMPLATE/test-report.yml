@@ -1,7 +1,8 @@
-- |
-  type: markdown
-    attributes:
-      value: "# Bug Report"
+
+head:
+- type: markdown
+  attributes:
+    value: "# Bug Report"
 name: "Bug Report"
 description: "Report bug or issue"
 title: "Bug: (fill in)"
