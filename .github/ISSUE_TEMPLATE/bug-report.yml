@@ -34,7 +34,7 @@ body:
     description: |
       Enter the API endpoint causing the issue (if applicable).
     value: |
-      `<!--- Paste the API endpoint here --->`
+      <!--- Paste the API endpoint here --->
   validations:
     required: false
 - type: textarea
