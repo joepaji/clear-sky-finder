@@ -33,8 +33,7 @@ body:
       Enter any related or dependent issues.
     placeholder: |
       - <!--- Enter related issues here --->
-    value: |
-      - 
+    value: - |
   validations:
     required: false
 - type: textarea
@@ -44,7 +43,6 @@ body:
       Please provide a list of requirements or dependencies for this feature.
     placeholder: |
       - <!--- Enter requirements here --->
-    value: |
-      - 
+    value: - |    
   validations:
     required: False
