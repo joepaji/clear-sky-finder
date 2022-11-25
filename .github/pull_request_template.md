@@ -19,11 +19,11 @@ Your one liner release notes here
 - [ ] Large
 
 #### Describe the old behavior you are changing
-1. 
-2. 
-3. 
+- 
+- 
+- 
 
 #### Describe the new behavior from this change
-1. 
-2. 
-3. 
+- 
+- 
+- 
