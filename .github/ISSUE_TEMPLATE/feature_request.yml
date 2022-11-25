@@ -1,0 +1,50 @@
+name: "Feature Request"
+description: "Submit a new feature or enhancement request"
+title: "Feature: (fill in)"
+labels:
+  - enhancement
+body:
+- type: markdown
+  attributes:
+    value: "# Feature Request"
+- type: textarea
+  attributes:
+    label: Feature Description
+    description: |
+      Enter a detailed description of the feature or enhancement.
+    placeholder: |
+      • Create X which will do Y
+      • X will work using Z dependencies
+  validations:
+    required: true
+- type: textarea
+  attributes:
+    label: Examples
+    description: |
+      Please provide some examples of this feature.
+    placeholder: |
+      Calling the endpoint `/v1/test` should return X
+  validations:
+    required: false
+- type: textarea
+  attributes:
+    label: Reference issues
+    description: |
+      Enter any related or dependent issues.
+    placeholder: |
+      - <!--- Enter related issues here --->
+    value: |
+      - 
+  validations:
+    required: false
+- type: textarea
+  attributes:
+    label: Requirements
+    description: |
+      Please provide a list of requirements or dependencies for this feature.
+    placeholder: |
+      - <!--- Enter requirements here --->
+    value: |
+      - 
+  validations:
+    required: False

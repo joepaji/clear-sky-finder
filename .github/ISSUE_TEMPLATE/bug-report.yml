@@ -1,0 +1,50 @@
+name: "Bug Report"
+description: "Report bug or issue"
+title: "Bug: (fill in)"
+labels:
+  - bug
+body:
+- type: markdown
+  attributes:
+    value: "# Bug Report"
+- type: textarea
+  attributes:
+    label: Issue Description
+    description: |
+      Enter a detailed description of the issue.
+    placeholder: |
+      • Endpoint example/v1/test returns X when Y is expected
+      • App should not add X to database as it will cause Y 
+  validations:
+    required: true
+- type: textarea
+  attributes:
+    label: Steps to reproduce
+    description: |
+      Enter the steps taken to reproduce the issue.
+    value: |
+      1.
+      2.
+      3.
+  validations:
+    required: true
+- type: input
+  attributes:
+    label: Reproduction endpoint
+    description: |
+      Enter the API endpoint causing the issue (if applicable).
+    value: |
+      `<!--- Paste the API endpoint here --->`
+  validations:
+    required: false
+- type: textarea
+  attributes:
+    label: Logs
+    description: |
+      Please provide relevant logs (if applicable).
+    value: |
+      ```
+      <!--- Paste logs here --->
+      ```  
+  validations:
+    required: False
