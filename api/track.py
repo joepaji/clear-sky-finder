@@ -131,13 +131,13 @@ class TrackManager(Resource):
         location = session.get(Track, location_id)
         if not location:
             return jsonify({
-                "Message": f"Location id {location_id} does not exist in the watchlist"
+                "Message": f"Location id {escape(location_id)} does not exist in the watchlist"
             })
         session.delete(location)
         session.commit()
 
         return jsonify({
-            "Message": f"Location id {location_id} has been removed"
+            "Message": f"Location id {escape(location_id)} has been removed"
         })
 
     @track.route('/test/', methods=['GET'])
@@ -160,7 +160,3 @@ class TrackManager(Resource):
             "long": long,
             "Location ID": location_id
         })
-
-    
-
-
