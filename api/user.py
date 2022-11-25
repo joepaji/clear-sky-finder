@@ -10,12 +10,11 @@ Code for routes and database for the '/v1/user' endpoint.
 
 from flask import Blueprint, jsonify, escape
 from sqlalchemy import exc
-from sqlalchemy.sql import select
+from sqlalchemy.sql.expression import select
 from flask_restful import Resource, request
 import re
-from extensions import db, ma
+from extensions import db, ma, session
 from exceptions import APIException
-
 user = Blueprint('user', __name__, template_folder='templates')
 
 class User(db.Model):
@@ -55,9 +54,11 @@ class UserManager(Resource):
         users_schema =UserSchema(many=True)
         if not user_id:
             statement = select(User)
-            users = db.session.execute(statement).scalars().all()
+            users = session.execute(statement).scalars().all()
             return jsonify(users_schema.dump(users))
-        user = db.session.get(User, user_id)
+        user = session.get(User, user_id)
+        if not user:
+            raise APIException("User does not exist", 404)
         return jsonify(user_schema.dump(user))
 
     @user.route('/post/', methods = ['POST'])
@@ -71,10 +72,10 @@ class UserManager(Resource):
         user = User(email, username, password, first_name, last_name)
 
         try:
-            db.session.add(user)
-            db.session.commit()
+            session.add(user)
+            session.commit()
         except exc.IntegrityError as err:
-            db.session.rollback()
+            session.rollback()
             errorInfo = err.orig.args
             message = errorInfo[1]
             email = re.findall('\'(.+?)\'', message)
@@ -99,7 +100,7 @@ class UserManager(Resource):
         if not id:
             return jsonify({'Message': 'Must provide user ID'})
         
-        user = db.session.get(User, id)
+        user = session.get(User, id)
 
         try:
             email = request.json['email']
@@ -123,7 +124,7 @@ class UserManager(Resource):
         user.first_name = first_name
         user.last_name = last_name
 
-        db.session.commit()
+        session.commit()
 
         return jsonify({
             'Message': f'User {user.username} altered'
@@ -141,12 +142,12 @@ class UserManager(Resource):
                 'Message': 'Must provide user ID to delete'
             })
         
-        user = db.session.get(User, id)
+        user = session.get(User, id)
         if not user:
             raise APIException("User does not exist", 404)
         
-        db.session.delete(user)
-        db.session.commit()
+        session.delete(user)
+        session.commit()
 
         return jsonify({
             'Message': f'User {escape(id)} deleted'
