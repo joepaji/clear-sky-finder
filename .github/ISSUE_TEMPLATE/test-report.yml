@@ -1,22 +1,20 @@
-
-header:
-- type: markdown
-  attributes:
-    value: "# Bug Report"
 name: "Bug Report"
 description: "Report bug or issue"
 title: "Bug: (fill in)"
 labels:
   - bug
 body:
+- type: markdown
+  attributes:
+    value: "# Bug Report"
 - type: textarea
   attributes:
     label: Issue Description
     description: |
       Enter a detailed description of the issue.
     placeholder: |
-      • Endpoint example/v1/test returns x when y is expected
-      • App should not add x to database as it will cause y 
+      • Endpoint example/v1/test returns X when Y is expected
+      • App should not add X to database as it will cause Y 
   validations:
     required: true
 - type: textarea
