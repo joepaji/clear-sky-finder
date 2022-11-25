@@ -1,4 +1,3 @@
-<!---
 ---
 name: Bug report
 about: Report a bug/issue
@@ -7,8 +6,6 @@ labels: bug
 assignees: ''
 
 ---
---->
-
 # Bug Report
 
 ### Issue Description
