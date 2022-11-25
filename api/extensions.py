@@ -9,6 +9,8 @@ Extensions used across multiple files.
 """
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
+from flask_sqlalchemy.session import Session
 
 db = SQLAlchemy()
 ma = Marshmallow()
+session = Session(db)

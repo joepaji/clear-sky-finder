@@ -6,10 +6,11 @@
 # ------------------------------------------------------------------
 from flask import Blueprint, jsonify
 from sqlalchemy import exc
+from sqlalchemy.sql.expression import select
 from flask_restful import Resource, request
 from geopy import Nominatim
 import re
-from extensions import db, ma
+from extensions import db, ma, session
 from user import User
 from location import get_location, generate_unique_location_id
 from exceptions import APIException
@@ -51,8 +52,8 @@ class TrackManager(Resource):
                 "Message": "User id required"
             })
         schema = TrackSchema(many=True)
-        locations = db.session.get(Track, user_id)
-        print(locations)
+        statement = select(Track).where(Track.user_id == user_id)
+        locations = session.execute(statement).scalars().all()
         return jsonify(schema.dump(locations))
         
     @track.route('/post/', methods=["POST"])
@@ -62,7 +63,7 @@ class TrackManager(Resource):
         except KeyError:
             return jsonify({'Message': 'Error! user_id is required.'})
         
-        user = db.session.get(User, user_id)
+        user = session.get(User, user_id)
         if not user:
             raise APIException("User does not exist", 404)
         
@@ -101,13 +102,13 @@ class TrackManager(Resource):
             # Get location by lat and long
             l = get_location(lat=lat, long=long)
 
-        location_id = generate_unique_location_id(l.lat, l.long, user_id)
+        location_id = generate_unique_location_id(l.lat, l.long, int(user_id))
         track = Track(location_id, user_id, l.city, l.state, l.zip, l.lat, l.long)
         try:
-            db.session.add(track)
-            db.session.commit()
+            session.add(track)
+            session.commit()
         except exc.IntegrityError as err:
-            db.session.rollback()
+            session.rollback()
             errorInfo = err.orig.args
             message = errorInfo[1]
             id = re.search('\'(.+?)\'', message)
