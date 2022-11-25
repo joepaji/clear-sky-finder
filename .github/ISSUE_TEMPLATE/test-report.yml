@@ -1,12 +1,12 @@
+- type: markdown
+  attributes:
+    value: "# Bug Report"
 name: "Bug Report"
-description: "Report an issue bug or issue"
+description: "Report bug or issue"
 title: "Bug: (fill in)"
 labels:
   - bug
 body:
-- type: markdown
-  attributes:
-    value: "# Bug Report"
 - type: textarea
   attributes:
     label: Issue Description
