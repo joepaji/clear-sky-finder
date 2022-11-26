@@ -1,10 +1,10 @@
-from flask import Blueprint, jsonify, escape, json
+from flask import Blueprint, jsonify, escape
 from sqlalchemy import exc
 from sqlalchemy.sql.expression import select
 from flask_restful import Resource, request
 from pytz import timezone
 from timezonefinder import TimezoneFinder
-from datetime import datetime, timedelta
+from datetime import datetime
 from extensions import db, ma, session
 from track import Track
 from exceptions import APIException
@@ -62,6 +62,7 @@ class CloudsManager(Resource):
         
         return jsonify(schema.dump(data))
     
+    
     #@clouds.route('/post/', methods=['POST'])
     #def add_cloud_data():
      #   pass
@@ -74,12 +75,9 @@ def get_timestamp(lat,long):
     tf = TimezoneFinder()
     tz = tf.timezone_at(lat=lat, lng=long)
     tz1 = timezone(tz)
-    timestamp = datetime.now(tz1).replace(hour=19, minute=0, second=0, microsecond=0).timestamp()
-    orig = datetime.fromtimestamp(timestamp)
-    new = orig + timedelta(hours=1)
-    new_timestamp = new.timestamp()
+    timestamp = datetime.now(tz1).replace(hour=20, minute=0, second=0, microsecond=0).timestamp()
 
-    return int(new_timestamp)
+    return int(timestamp)
 
 def add_cloud_data(location_id):
     data = session.get(Track, location_id)
@@ -89,7 +87,7 @@ def add_cloud_data(location_id):
     hourly = {}
     hour = 1
     for data in cloud_data:
-        hourly[hour] = json.dumps(data)
+        hourly[hour] = data
         hour += 1
 
     clouds = Clouds(location_id, hourly[1], hourly[2], hourly[3], hourly[4], hourly[5], \
