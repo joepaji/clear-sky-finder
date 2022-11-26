@@ -133,3 +133,6 @@ venv/
 
 # Database config file
 db_config.py
+
+# API config file
+api_config.py
