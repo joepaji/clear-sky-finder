@@ -2,12 +2,12 @@ from flask import Blueprint, jsonify, escape
 from sqlalchemy import exc
 from sqlalchemy.sql.expression import select
 from flask_restful import Resource, request
-from geopy import Nominatim
+from pytz import timezone
+from timezonefinder import TimezoneFinder
+from datetime import datetime
 from extensions import db, ma, session
-from user import User
 from track import Track
 from exceptions import APIException
-import re
 
 clouds = Blueprint('clouds', __name__, template_folder='templates')
 
@@ -53,6 +53,7 @@ class CloudsManager(Resource):
             return jsonify({
                 "Message": "Location id required"
             })
+        print(get_timezone_offset(location_id))
         schema = CloudsSchema(many=True)
         statement = select(Clouds).where(Clouds.location_id == location_id)
         data = session.execute(statement).scalars().all()
@@ -62,7 +63,25 @@ class CloudsManager(Resource):
 # Look at api and determine what data to keep
 
 # Add timezone offset function
+def get_timezone_offset(location_id):
+    statement = select(Track).where(Track.location_id == location_id)
+    data = session.execute(statement).fetchone()
+    if data == None:
+        raise APIException(f"Location id {location_id} does not exist")
+    lat = data[0].lat
+    long = data[0].long
+    tf = TimezoneFinder()
+    tz = tf.timezone_at(lat=lat, lng=long)
+    naive = datetime.now()
+    tz1 = timezone(tz)
+    aware1 = tz1.localize(naive).strftime('%z')
 
+    if int(aware1)<0:
+        offset_hours = aware1[:3]
+    else:
+        offset_hours = aware1[:2]
+
+    return int(offset_hours)*-1
 # Add data to database by location_id
 
 # Add data to database by 

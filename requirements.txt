@@ -5,3 +5,5 @@ flask_sqlalchemy==3.0.2
 pymysql==1.0.2
 marshmallow_sqlalchemy==0.28.1
 geopy==2.3.0
+pyzt==1.0.1
+timezonefinder==6.1.8
