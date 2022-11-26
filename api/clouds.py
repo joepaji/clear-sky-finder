@@ -98,7 +98,7 @@ def add_cloud_data(location_id):
         session.commit()
     except exc.IntegrityError as err:
         session.rollback()
-        raise APIException("Error occurred trying to insert cloud data.")
+        raise APIException(f"Cloud data for location id {location_id} already exists. You may want to see update method instead.")
     
 def get_cloud_data(location_id):
     API_URL = 'https://api.openweathermap.org/data/3.0/onecall'
