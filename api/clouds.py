@@ -8,6 +8,9 @@ from datetime import datetime
 from extensions import db, ma, session
 from track import Track
 from exceptions import APIException
+from api_config import API_KEY
+import requests
+
 
 clouds = Blueprint('clouds', __name__, template_folder='templates')
 
@@ -53,35 +56,91 @@ class CloudsManager(Resource):
             return jsonify({
                 "Message": "Location id required"
             })
-        print(get_timezone_offset(location_id))
         schema = CloudsSchema(many=True)
         statement = select(Clouds).where(Clouds.location_id == location_id)
         data = session.execute(statement).scalars().all()
+        
         return jsonify(schema.dump(data))
+    
+    
+    #@clouds.route('/post/', methods=['POST'])
+    #def add_cloud_data():
+     #   pass
 
 
 # Look at api and determine what data to keep
 
 # Add timezone offset function
-def get_timezone_offset(location_id):
+def get_timestamp(lat,long):
+    tf = TimezoneFinder()
+    tz = tf.timezone_at(lat=lat, lng=long)
+    tz1 = timezone(tz)
+    timestamp = datetime.now(tz1).replace(hour=20, minute=0, second=0, microsecond=0).timestamp()
+
+    return int(timestamp)
+
+def add_cloud_data(location_id):
+    data = session.get(Track, location_id)
+    if not data:
+        raise APIException(f"Location id {location_id} not found", 404)
+    cloud_data = get_cloud_data(location_id)
+    hourly = {}
+    hour = 1
+    for data in cloud_data:
+        hourly[hour] = data
+        hour += 1
+
+    clouds = Clouds(location_id, hourly[1], hourly[2], hourly[3], hourly[4], hourly[5], \
+        hourly[6], hourly[7], hourly[8], hourly[9], hourly[10])
+
+    try:
+        session.add(clouds)
+        session.commit()
+    except exc.IntegrityError as err:
+        session.rollback()
+        raise APIException(f"Cloud data for location id {location_id} already exists. You may want to see update method instead.")
+    
+def get_cloud_data(location_id):
+    API_URL = 'https://api.openweathermap.org/data/3.0/onecall'
     statement = select(Track).where(Track.location_id == location_id)
     data = session.execute(statement).fetchone()
     if data == None:
         raise APIException(f"Location id {location_id} does not exist")
     lat = data[0].lat
     long = data[0].long
-    tf = TimezoneFinder()
-    tz = tf.timezone_at(lat=lat, lng=long)
-    naive = datetime.now()
-    tz1 = timezone(tz)
-    aware1 = tz1.localize(naive).strftime('%z')
 
-    if int(aware1)<0:
-        offset_hours = aware1[:3]
-    else:
-        offset_hours = aware1[:2]
+    params = {
+        'lat': lat, 
+        'lon': long, 
+        'exclude': 'current,minutely,daily,alerts',    
+        'appid': API_KEY
+        }
 
-    return int(offset_hours)*-1
+    response = requests.get(API_URL, params=params) 
+    data = response.json()['hourly']
+    timestamp = get_timestamp(lat, long)
+
+    for i in range(len(data)):
+        if data[i]['dt'] == timestamp:
+            break
+    
+    start_index = i 
+    cloud_data = []
+    while i<start_index+10:
+        data_dict = {}
+        data_dict['dt'] = data[i]['dt']
+        data_dict['clouds'] = data[i]['clouds']
+        data_dict['main'] = data[i]['weather'][0]['main']
+        data_dict['description'] = data[i]['weather'][0]['description']
+        cloud_data.append((data_dict))
+        i+=1
+    
+    return cloud_data
+    
+    
+    
+    
+    
 # Add data to database by location_id
 
 # Add data to database by 
