@@ -19,68 +19,15 @@ class Clouds(db.Model):
     Database model for weatherdata table
     """
     location_id = db.Column(db.Integer, primary_key = True)
-    hour0 = db.Column(db.JSON(120))
-    hour1 = db.Column(db.JSON(120))
-    hour2 = db.Column(db.JSON(120))
-    hour3 = db.Column(db.JSON(120))
-    hour4 = db.Column(db.JSON(120))
-    hour5 = db.Column(db.JSON(120))
-    hour6 = db.Column(db.JSON(120))
-    hour7 = db.Column(db.JSON(120))
-    hour8 = db.Column(db.JSON(120))
-    hour9 = db.Column(db.JSON(120))
-    hour10 = db.Column(db.JSON(120))
-    hour11 = db.Column(db.JSON(120))
-    hour12 = db.Column(db.JSON(120))
-    hour13 = db.Column(db.JSON(120))
-    hour14 = db.Column(db.JSON(120))
-    hour15 = db.Column(db.JSON(120))
-    hour16 = db.Column(db.JSON(120))
-    hour17 = db.Column(db.JSON(120))
-    hour18 = db.Column(db.JSON(120))
-    hour19 = db.Column(db.JSON(120))
-    hour20 = db.Column(db.JSON(120))
-    hour21 = db.Column(db.JSON(120))
-    hour22 = db.Column(db.JSON(120))
-    hour23 = db.Column(db.JSON(120))
+    data = db.Column(db.JSON)
 
-    def __init__(self, location_id, hour0, hour1, hour2, hour3, hour4, hour5,\
-         hour6, hour7, hour8, hour9, hour10, hour11, hour12, hour13, hour14, \
-            hour15, hour16, hour17, hour18, hour19, hour20, hour21, hour22, \
-                hour23):
+    def __init__(self, location_id, data):
         self.location_id = location_id
-        self.hour0 = hour0
-        self.hour1 = hour1
-        self.hour2 = hour2
-        self.hour3 = hour3
-        self.hour4 = hour4
-        self.hour5 = hour5
-        self.hour6 = hour6
-        self.hour7 = hour7
-        self.hour8 = hour8 
-        self.hour9 = hour9
-        self.hour10 = hour10
-        self.hour11 = hour11
-        self.hour12 = hour12
-        self.hour13 = hour13
-        self.hour14 = hour14
-        self.hour15 = hour15
-        self.hour16 = hour16
-        self.hour17 = hour17
-        self.hour18 = hour18
-        self.hour19 = hour19
-        self.hour20 = hour20
-        self.hour21 = hour21
-        self.hour22 = hour22
-        self.hour23 = hour23
-       
+        self.data = data
 
 class CloudsSchema(ma.Schema):
     class Meta: 
-        fields = ('location_id', 'hour0', 'hour1', 'hour2', 'hour3', 'hour4', \
-            'hour5', 'hour6', 'hour7', 'hour8', 'hour9', 'hour10', 'hour11', \
-                'hour12', 'hour13', 'hour14', 'hour15', 'hour16', 'hour17', \
-                    'hour18', 'hour19', 'hour20', 'hour21', 'hour22', 'hour23')
+        fields = ('location_id', 'data')
 
 class CloudsManager(Resource):
     @clouds.route('/get/', methods=['GET'])
@@ -93,8 +40,7 @@ class CloudsManager(Resource):
             })
         schema = CloudsSchema(many=True)
         statement = select(Clouds).where(Clouds.location_id == location_id)
-        data = session.execute(statement).scalars().all()
-        add_cloud_data(location_id)  
+        data = session.execute(statement).scalars().all()  
         return jsonify(schema.dump(data))
     
     
@@ -117,15 +63,8 @@ def add_cloud_data(location_id, lat, long):
     #if not data:
     #    raise APIException(f"Location id {location_id} not found", 404)
     cloud_data = get_cloud_data(lat, long)
-    hourly = {}
-    
-    for i in range(len(cloud_data)):
-        hourly[i] = cloud_data[i]
-    
-    clouds = Clouds(location_id, hourly[0], hourly[1], hourly[2], hourly[3], hourly[4], hourly[5], \
-        hourly[6], hourly[7], hourly[8], hourly[9], hourly[10], hourly[11], hourly[12], hourly[13], \
-            hourly[14], hourly[15], hourly[16], hourly[17], hourly[18], hourly[19], hourly[20], \
-                hourly[21], hourly[22], hourly[23])
+   
+    clouds = Clouds(location_id, cloud_data)
     try:
         session.add(clouds)
         session.commit()
@@ -154,7 +93,6 @@ def get_cloud_data(lat, long):
     tz1 = timezone(tz)
     response = requests.get(API_URL, params=params) 
     data_current = response.json()['hourly']
-    cloud_data = []
     
     timestamps = []
     for i in range(0, 24):
@@ -162,14 +100,17 @@ def get_cloud_data(lat, long):
         timestamps.append(timestamp)    
         if not historical:
             break
-    
-    cloud_data = asyncio.run(get_historical_data(timestamps, lat, long))
 
+    cloud_data_list = asyncio.run(get_historical_data(timestamps, lat, long))
     for j in range(0, 24-i):
-        add_data = generate_cloud_dict(data_current[j])
-        cloud_data.append(add_data)
+        data_dict = generate_cloud_dict(data_current[j])
+        cloud_data_list.append(data_dict)
     
-    return cloud_data
+    cloud_data_dict = {}
+    for i in range(len(cloud_data_list)):
+        cloud_data_dict[i] = cloud_data_list[i]
+
+    return cloud_data_dict
 
 def generate_cloud_dict(data):
     data_dict = {}
