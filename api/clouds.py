@@ -5,8 +5,6 @@ from flask_restful import Resource, request
 from pytz import timezone
 from timezonefinder import TimezoneFinder
 from datetime import datetime
-from cachetools import cached
-from diskcache import Cache
 from extensions import db, ma, session
 from track import Track
 from exceptions import APIException
@@ -14,8 +12,6 @@ from api_config import API_KEY
 import requests
 import aiohttp
 import asyncio
-import time
-
 
 clouds = Blueprint('clouds', __name__, template_folder='templates')
 
@@ -140,15 +136,6 @@ def add_cloud_data(location_id):
         session.rollback()
         raise APIException(f"Cloud data for location id {location_id} already exists. You may want to see update method instead.")
 
-def get_historical(lat, long, timestamp):
-    params = {
-                'lat': lat,
-                'lon': long,
-                'dt': timestamp,
-                'appid': API_KEY
-            }
-    return requests.get(BASE_URL, params=params).json()
-
 def get_cloud_data(location_id):
     API_URL = 'https://api.openweathermap.org/data/3.0/onecall'
     statement = select(Track).where(Track.location_id == location_id)
@@ -218,7 +205,7 @@ async def get_historical_data_helper(session, timestamp, lat, long):
         result_data = await response.json()
         result = result_data['data'][0]
         data_dict = generate_cloud_dict(result)
-        
+
         return data_dict
 # Add data to database by location_id
 
