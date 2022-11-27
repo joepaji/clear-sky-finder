@@ -59,12 +59,13 @@ class CloudsManager(Resource):
     @clouds.route('/test/', methods=['GET'])
     def test():
         try:
-            location_id = request.args['location_id']
+            user_id = request.args['id']
         except Exception as _:
             return jsonify({
-                "Message": "Location id required"
+                "Message": "User id required"
             })
-        update_cloud_data(location_id)
+
+        update_all_cloud_data(user_id)
         
         return jsonify({
             "Message": "OK"
@@ -172,20 +173,10 @@ async def get_historical_data_helper(session, timestamp, lat, long):
 
         return data_dict
 
-def update_cloud_data(location_id):
-    from track import Track
+def update_cloud_data(location_id, data_current):
     cloud_data = session.get(Clouds, location_id)
     if not cloud_data:
         raise APIException(f"Location id {location_id} not found")
-    track_data = session.get(Track, location_id)
-    params = {
-        'lat': track_data.lat, 
-        'lon': track_data.long, 
-        'exclude': 'current,minutely,daily,alerts',    
-        'appid': API_KEY
-        }
-    response = requests.get(API_URL, params=params)
-    data_current = response.json()['hourly']
     hour_index = datetime.now().hour
     for i in range(0, 24-hour_index):
         curr_data = cloud_data.data[str(hour_index)]
@@ -196,4 +187,19 @@ def update_cloud_data(location_id):
     flag_modified(cloud_data, "data")
     session.add(cloud_data)
     session.commit()
-# Add data to database by 
+
+def update_all_cloud_data(user_id):
+    from track import Track
+    statement = select(Track).where(Track.user_id == user_id)
+    result = session.execute(statement).fetchall()
+
+    for location in result:
+        params = {
+        'lat': location[0].lat, 
+        'lon': location[0].long, 
+        'exclude': 'current,minutely,daily,alerts',    
+        'appid': API_KEY
+        }
+        response = requests.get(API_URL, params=params)
+        data_current = response.json()['hourly']
+        update_cloud_data(location[0].location_id ,data_current)
