@@ -59,6 +59,9 @@ class CloudsManager(Resource):
         schema = CloudsSchema(many=True)
         statement = select(Clouds).where(Clouds.location_id == location_id)
         data = session.execute(statement).scalars().all()  
+        if not data:
+            raise APIException(f"Location id \'{escape(location_id)}\' does not exist", 404)
+
         return jsonify(schema.dump(data))
     
     @clouds.route('/put/', methods=['PUT'])
@@ -70,7 +73,7 @@ class CloudsManager(Resource):
             user_id = request.args['id']
         except Exception as _:
             return jsonify({
-                "Message": "Location id required"
+                "Message": "User id required"
             })
 
         update_all_cloud_data(user_id)
@@ -221,7 +224,7 @@ def update_cloud_data(location_id, data_update):
     """
     cloud_data = session.get(Clouds, location_id)
     if not cloud_data:
-        raise APIException(f"Location id \'{location_id}\' not found")
+        raise APIException(f"Location id \'{location_id}\' does not exist", 404)
 
     hour_index = datetime.now().hour
     for i in range(0, 24-hour_index):
@@ -245,6 +248,8 @@ def update_all_cloud_data(user_id):
     from track import Track
     statement = select(Track).where(Track.user_id == user_id)
     result = session.execute(statement).fetchall()
+    if not result:
+        raise APIException(f"User id \'{escape(user_id)}\' does not exist", 404)
     for location in result:
         params = {
         'lat': location[0].lat, 

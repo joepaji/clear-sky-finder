@@ -159,9 +159,7 @@ class TrackManager(Resource):
         location = session.get(Track, location_id)
         cloud_data = session.get(Clouds, location_id)
         if not location:
-            return jsonify({
-                "Message": f"Location id \'{escape(location_id)}\' does not exist in the watchlist"
-            })
+            raise APIException(f"Location id \'{escape(location_id)}\' does not exist in the watchlist", 404)
         session.delete(location)
         session.delete(cloud_data)
         session.commit()
