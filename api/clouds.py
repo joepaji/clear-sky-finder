@@ -6,7 +6,6 @@ from pytz import timezone
 from timezonefinder import TimezoneFinder
 from datetime import datetime
 from extensions import db, ma, session
-from track import Track
 from exceptions import APIException
 from api_config import API_KEY
 import requests
@@ -113,11 +112,11 @@ def get_timestamp(tz, hour):
     current_timestamp = datetime.now(tz).replace(hour=now.hour, minute=0, second=0, microsecond=0).timestamp()
     return int(timestamp), timestamp<current_timestamp
 
-def add_cloud_data(location_id):
-    data = session.get(Track, location_id)
-    if not data:
-        raise APIException(f"Location id {location_id} not found", 404)
-    cloud_data = get_cloud_data(location_id)
+def add_cloud_data(location_id, lat, long):
+    #data = session.get(Track, location_id)
+    #if not data:
+    #    raise APIException(f"Location id {location_id} not found", 404)
+    cloud_data = get_cloud_data(lat, long)
     hourly = {}
     
     for i in range(len(cloud_data)):
@@ -127,8 +126,6 @@ def add_cloud_data(location_id):
         hourly[6], hourly[7], hourly[8], hourly[9], hourly[10], hourly[11], hourly[12], hourly[13], \
             hourly[14], hourly[15], hourly[16], hourly[17], hourly[18], hourly[19], hourly[20], \
                 hourly[21], hourly[22], hourly[23])
-
-    
     try:
         session.add(clouds)
         session.commit()
@@ -136,14 +133,14 @@ def add_cloud_data(location_id):
         session.rollback()
         raise APIException(f"Cloud data for location id {location_id} already exists. You may want to see update method instead.")
 
-def get_cloud_data(location_id):
+def get_cloud_data(lat, long):
     API_URL = 'https://api.openweathermap.org/data/3.0/onecall'
-    statement = select(Track).where(Track.location_id == location_id)
-    data = session.execute(statement).fetchone()
-    if data == None:
-        raise APIException(f"Location id {location_id} does not exist")
-    lat = data[0].lat
-    long = data[0].long
+    #statement = select(Track).where(Track.location_id == location_id)
+    #data = session.execute(statement).fetchone()
+    #if data == None:
+    #    raise APIException(f"Location id {location_id} does not exist")
+    #lat = data[0].lat
+    #long = data[0].long
 
     params = {
         'lat': lat, 
