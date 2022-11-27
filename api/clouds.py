@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, escape
 from sqlalchemy import exc
 from sqlalchemy.sql.expression import select
+from sqlalchemy.orm.attributes import flag_modified
 from flask_restful import Resource, request
 from pytz import timezone
 from timezonefinder import TimezoneFinder
@@ -43,7 +44,31 @@ class CloudsManager(Resource):
         data = session.execute(statement).scalars().all()  
         return jsonify(schema.dump(data))
     
-    
+    @clouds.route('/put/', methods=['PUT'])
+    def update_clouds():
+        try:
+            location_id = request.args['location_id']
+        except Exception as _:
+            return jsonify({
+                "Message": "Location id required"
+            })
+        update_cloud_data(location_id)
+        return jsonify({
+            "Message": f"Cloud data updated for location id {location_id}"
+        })
+    @clouds.route('/test/', methods=['GET'])
+    def test():
+        try:
+            location_id = request.args['location_id']
+        except Exception as _:
+            return jsonify({
+                "Message": "Location id required"
+            })
+        update_cloud_data(location_id)
+        
+        return jsonify({
+            "Message": "OK"
+        })
     #@clouds.route('/post/', methods=['POST'])
     #def add_cloud_data():
      #   pass
@@ -52,6 +77,8 @@ class CloudsManager(Resource):
 # Look at api and determine what data to keep
 
 # Add timezone offset function
+API_URL = 'https://api.openweathermap.org/data/3.0/onecall'
+
 def get_timestamp(tz, hour):
     timestamp = datetime.now(tz).replace(hour=hour, minute=0, second=0, microsecond=0).timestamp()
     now = datetime.now(tz)
@@ -73,7 +100,6 @@ def add_cloud_data(location_id, lat, long):
         raise APIException(f"Cloud data for location id {location_id} already exists. You may want to see update method instead.")
 
 def get_cloud_data(lat, long):
-    API_URL = 'https://api.openweathermap.org/data/3.0/onecall'
     #statement = select(Track).where(Track.location_id == location_id)
     #data = session.execute(statement).fetchone()
     #if data == None:
@@ -97,10 +123,10 @@ def get_cloud_data(lat, long):
     timestamps = []
     for i in range(0, 24):
         timestamp, historical = get_timestamp(tz1, i)
-        timestamps.append(timestamp)    
         if not historical:
             break
-
+        timestamps.append(timestamp)    
+        
     cloud_data_list = asyncio.run(get_historical_data(timestamps, lat, long))
     for j in range(0, 24-i):
         data_dict = generate_cloud_dict(data_current[j])
@@ -132,7 +158,7 @@ async def get_historical_data(timestamps, lat, long):
         return historical_data
 
 async def get_historical_data_helper(session, timestamp, lat, long):
-    URL_HISTORICAL = 'https://api.openweathermap.org/data/3.0/onecall/timemachine'
+    URL_HISTORICAL = API_URL + '/timemachine'
     params = {
                 'lat': lat,
                 'lon': long,
@@ -145,6 +171,29 @@ async def get_historical_data_helper(session, timestamp, lat, long):
         data_dict = generate_cloud_dict(result)
 
         return data_dict
-# Add data to database by location_id
 
+def update_cloud_data(location_id):
+    from track import Track
+    cloud_data = session.get(Clouds, location_id)
+    if not cloud_data:
+        raise APIException(f"Location id {location_id} not found")
+    track_data = session.get(Track, location_id)
+    params = {
+        'lat': track_data.lat, 
+        'lon': track_data.long, 
+        'exclude': 'current,minutely,daily,alerts',    
+        'appid': API_KEY
+        }
+    response = requests.get(API_URL, params=params)
+    data_current = response.json()['hourly']
+    hour_index = datetime.now().hour
+    for i in range(0, 24-hour_index):
+        curr_data = cloud_data.data[str(hour_index)]
+        new_data = generate_cloud_dict(data_current[i])
+        if curr_data != new_data:
+            cloud_data.data[str(hour_index)] = new_data
+        hour_index += 1
+    flag_modified(cloud_data, "data")
+    session.add(cloud_data)
+    session.commit()
 # Add data to database by 
