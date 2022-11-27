@@ -5,7 +5,8 @@
 # version = '0.10'
 # ------------------------------------------------------------------
 """
-Code for routes and database for the '/v1/user' endpoint.
+This module contains the database model for the user table and routes
+for /v1/user/ endpoint to interact with the database.
 """
 
 from flask import Blueprint, jsonify, escape
@@ -20,7 +21,7 @@ user = Blueprint('user', __name__, template_folder='templates')
 
 class User(db.Model):
     """
-    Database model for the User table
+    Database model for the User table.
     """
     user_id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
@@ -42,7 +43,7 @@ class UserSchema(ma.Schema):
 
 class UserManager(Resource):
     """
-    API calls pertaining to /api/v1/user/
+    Routes for /v1/user/
     """
     @user.route('/get/', methods = ['GET'])
     #@user.route('/get/<user_id>', methods = ['GET'])
@@ -64,6 +65,9 @@ class UserManager(Resource):
 
     @user.route('/post/', methods = ['POST'])
     def add_user():
+        """
+        Add a new user to the database.
+        """
         email = request.json['email']
         username = request.json['username']
         password = request.json['password']
@@ -88,11 +92,14 @@ class UserManager(Resource):
             })
 
         return jsonify({
-            'Message': f'User {escape(username)} has been inserted.'
+            'Message': f'User \'{escape(username)}\' has been inserted.'
         })
     
     @user.route('/put/', methods=['PUT'])
     def update_user():
+        """
+        Edit a users email, password or name.
+        """
         try:
             id = request.args['id']
         except Exception as _:
@@ -133,6 +140,9 @@ class UserManager(Resource):
 
     @user.route('/delete/', methods=['DELETE'])
     def delete_user():
+        """
+        Delete a user from the user table.
+        """
         try:
             id = request.args['id']
         except Exception as _: 
@@ -151,5 +161,5 @@ class UserManager(Resource):
         session.commit()
 
         return jsonify({
-            'Message': f'User {escape(id)} deleted'
+            'Message': f'User \'{escape(id)}\' deleted'
         })
