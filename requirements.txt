@@ -7,3 +7,5 @@ marshmallow_sqlalchemy==0.28.1
 geopy==2.3.0
 pyzt==1.0.1
 timezonefinder==6.1.8
+aiohttp==3.8.3
+asyncio==3.4.3
