@@ -54,7 +54,7 @@ class CloudsManager(Resource):
             })
         update_cloud_data(location_id)
         return jsonify({
-            "Message": f"Cloud data updated for location id {location_id}"
+            "Message": f"Cloud data updated for location id {escape(location_id)}"
         })
     @clouds.route('/test/', methods=['GET'])
     def test():
