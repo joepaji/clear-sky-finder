@@ -5,11 +5,16 @@ from flask_restful import Resource, request
 from pytz import timezone
 from timezonefinder import TimezoneFinder
 from datetime import datetime
+from cachetools import cached
+from diskcache import Cache
 from extensions import db, ma, session
 from track import Track
 from exceptions import APIException
 from api_config import API_KEY
 import requests
+import aiohttp
+import asyncio
+import time
 
 
 clouds = Blueprint('clouds', __name__, template_folder='templates')
@@ -94,7 +99,7 @@ class CloudsManager(Resource):
         schema = CloudsSchema(many=True)
         statement = select(Clouds).where(Clouds.location_id == location_id)
         data = session.execute(statement).scalars().all()
-        add_cloud_data(location_id)
+        add_cloud_data(location_id)  
         return jsonify(schema.dump(data))
     
     
@@ -127,13 +132,23 @@ def add_cloud_data(location_id):
             hourly[14], hourly[15], hourly[16], hourly[17], hourly[18], hourly[19], hourly[20], \
                 hourly[21], hourly[22], hourly[23])
 
+    
     try:
         session.add(clouds)
         session.commit()
     except exc.IntegrityError as err:
         session.rollback()
         raise APIException(f"Cloud data for location id {location_id} already exists. You may want to see update method instead.")
-    
+
+def get_historical(lat, long, timestamp):
+    params = {
+                'lat': lat,
+                'lon': long,
+                'dt': timestamp,
+                'appid': API_KEY
+            }
+    return requests.get(BASE_URL, params=params).json()
+
 def get_cloud_data(location_id):
     API_URL = 'https://api.openweathermap.org/data/3.0/onecall'
     statement = select(Track).where(Track.location_id == location_id)
@@ -156,22 +171,15 @@ def get_cloud_data(location_id):
     response = requests.get(API_URL, params=params) 
     data_current = response.json()['hourly']
     cloud_data = []
+    
+    timestamps = []
     for i in range(0, 24):
         timestamp, historical = get_timestamp(tz1, i)
-        if historical:
-            URL_HISTORICAL = API_URL + '/timemachine'
-            params = {
-                'lat': lat,
-                'lon': long,
-                'dt': timestamp,
-                'appid': API_KEY
-            }
-            response = requests.get(URL_HISTORICAL, params=params)
-            data_historical = response.json()['data'][0]
-            add_data = generate_cloud_dict(data_historical)
-            cloud_data.append(add_data)
-        else:
+        timestamps.append(timestamp)    
+        if not historical:
             break
+    
+    cloud_data = asyncio.run(get_historical_data(timestamps, lat, long))
 
     for j in range(0, 24-i):
         add_data = generate_cloud_dict(data_current[j])
@@ -188,9 +196,30 @@ def generate_cloud_dict(data):
     
     return data_dict
     
-    
-    
-    
+async def get_historical_data(timestamps, lat, long):
+    async with aiohttp.ClientSession() as session:
+        tasks = []
+        for timestamp in timestamps:
+            task = asyncio.ensure_future(get_historical_data_helper(session, timestamp, lat, long))
+            tasks.append(task)
+        historical_data = await asyncio.gather(*tasks)
+        
+        return historical_data
+
+async def get_historical_data_helper(session, timestamp, lat, long):
+    URL_HISTORICAL = 'https://api.openweathermap.org/data/3.0/onecall/timemachine'
+    params = {
+                'lat': lat,
+                'lon': long,
+                'dt': timestamp,
+                'appid': API_KEY
+            }
+    async with session.get(URL_HISTORICAL, params=params) as response:
+        result_data = await response.json()
+        result = result_data['data'][0]
+        data_dict = generate_cloud_dict(result)
+        
+        return data_dict
 # Add data to database by location_id
 
 # Add data to database by 
