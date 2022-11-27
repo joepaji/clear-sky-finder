@@ -1,3 +1,12 @@
+#!/usr/bin/env python3
+# ------------------------------------------------------------------
+# Created By : Joheb Rahman
+# Created Date: 11/22/2022
+# version = '0.10'
+# ------------------------------------------------------------------
+"""
+This module contains the class for a custom APIException and its exception handler.
+"""
 from flask import Blueprint, jsonify
 
 exception = Blueprint('exception', __name__, template_folder='templates')

@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 # ------------------------------------------------------------------
 # Created By : Joheb Rahman
-# Created Date: 11/24/2022
+# Created Date: 11/22/2022
 # version = '0.10'
 # ------------------------------------------------------------------
 """
-Location class used to manage get location function and location object
+Location class used to manage get location function and location object.
+This module gets and structures location data such as city,state,zip,lat,long.
 """
 from geopy import Nominatim
 
@@ -22,6 +23,7 @@ def get_location(city=None, state=None, zip=None, lat=None, long=None):
     Get location by zip or city and state
     """
     geolocator = Nominatim(user_agent='clear-sky-finder')
+    # Get location by zip
     if zip:
         location = geolocator.geocode(f"{zip}")
         lat = location.latitude
@@ -29,6 +31,7 @@ def get_location(city=None, state=None, zip=None, lat=None, long=None):
         location = geolocator.reverse(f"{lat},{long}")
         city = location.raw['address']['city']
         state = location.raw['address']['state']
+    # Get location by lat and long
     elif lat and long:
         if city == "" or state == "" or zip == "":
             location = geolocator.reverse(f"{lat},{long}")
@@ -41,6 +44,7 @@ def get_location(city=None, state=None, zip=None, lat=None, long=None):
                 zip = location.raw['address']['postcode']
             except KeyError:
                 zip = None
+    # Get location by city and state
     elif city and state:
         location = geolocator.geocode(f"{city}, {state}")
         lat = location.latitude
@@ -54,7 +58,7 @@ def get_location(city=None, state=None, zip=None, lat=None, long=None):
 
 def generate_unique_location_id(lat, long, user_id):
     """
-    Generate a unique location id based on given coordinates.
+    Generate a unique location id based on given coordinates and user_id.
     """
     try:
         lat_double = None

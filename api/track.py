@@ -1,9 +1,15 @@
 #!/usr/bin/env python3
 # ------------------------------------------------------------------
 # Created By : Joheb Rahman
-# Created Date: 11/23/2022
+# Created Date: 11/22/2022
 # version = '0.10'
 # ------------------------------------------------------------------
+"""
+This module contains the database model for the track table and routes
+for /v1/track/ endpoint to interact with the database. This module adds 
+a new location to the tracked list and adds the data in the Clouds table
+for that location as well.
+"""
 from flask import Blueprint, jsonify, escape
 from sqlalchemy import exc
 from sqlalchemy.sql.expression import select
@@ -20,7 +26,7 @@ track = Blueprint('track', __name__, template_folder='templates')
 
 class Track(db.Model):
     """
-    Database model for the Track table
+    Database model for the Track table.
     """
     location_id = db.Column(db.Integer, primary_key = True)
     user_id = db.Column(db.Integer)
@@ -44,8 +50,14 @@ class TrackSchema(ma.Schema):
         fields = ('location_id', 'user_id', 'city', 'state', 'zip', 'lat', 'long')
 
 class TrackManager(Resource):
+    """
+    Routes for /v1/track/
+    """
     @track.route('/get', methods=['GET'])
     def get_tracked_locations():
+        """
+        Gets all tracked locations for given user id.
+        """
         try:
             user_id = request.args['id']
         except Exception as _:
@@ -58,19 +70,23 @@ class TrackManager(Resource):
         schema = TrackSchema(many=True)
         statement = select(Track).where(Track.user_id == user_id)
         locations = session.execute(statement).scalars().all()
+        
         return jsonify(schema.dump(locations))
         
     @track.route('/post/', methods=["POST"])
     def add_location():
+        """
+        Add a new location to the track table for given user id.
+        """
         try:
-            user_id = request.args['user_id']
+            user_id = request.args['id']
         except KeyError:
-            return jsonify({'Message': 'Error! user_id is required.'})
+            return jsonify({'Message': 'Error! id is required.'})
         
         user = session.get(User, user_id)
         if not user:
             raise APIException("User does not exist", 404)
-        
+
         try:
             city = request.args['city']
         except KeyError:
@@ -92,6 +108,8 @@ class TrackManager(Resource):
         except KeyError:
             long = None
         
+        # Check if at least one correct input combination is given
+        # Should accept if zip or (lat and long) or (city and state) are provided
         if not (lat and long) and not zip:
             if (city=="" and state=="") or (city=="" and state != "") or (city!="" and state==""):
                 raise APIException("Lat long or city, state, zip are required")
@@ -108,6 +126,7 @@ class TrackManager(Resource):
 
         location_id = generate_unique_location_id(l.lat, l.long, int(user_id))
         track = Track(location_id, user_id, l.city, l.state, l.zip, l.lat, l.long)
+
         try:
             session.add(track)
             session.commit()
@@ -117,15 +136,20 @@ class TrackManager(Resource):
             message = errorInfo[1]
             id = re.search('\'(.+?)\'', message)
             return jsonify({
-                "Message": f"Location id {id[0]} already exists",
+                "Message": f"Location id \'{id[0]}\' already exists",
             })
+        # Add cloud data for this new location_id
         add_cloud_data(location_id, l.lat, l.long)
+
         return jsonify({
-            "Message": f"Inserted location id {location_id}"
+            "Message": f"Inserted location id \'{location_id}\'"
         })
 
     @track.route('/delete/', methods=['DELETE'])
     def remove_location():
+        """
+        Removes location and corresponding cloud data from the track and cloud tables.
+        """
         try:
             location_id = request.args['location_id']
         except Exception as _:
@@ -136,33 +160,12 @@ class TrackManager(Resource):
         cloud_data = session.get(Clouds, location_id)
         if not location:
             return jsonify({
-                "Message": f"Location id {escape(location_id)} does not exist in the watchlist"
+                "Message": f"Location id \'{escape(location_id)}\' does not exist in the watchlist"
             })
         session.delete(location)
         session.delete(cloud_data)
         session.commit()
 
         return jsonify({
-            "Message": f"Location id {escape(location_id)} has been removed"
-        })
-
-    @track.route('/test/', methods=['GET'])
-    def test():
-        geolocator = Nominatim(user_agent='clear-sky-finder')
-        result = geolocator.geocode("Laveen, AZ")
-        lat = result.latitude
-        long = result.longitude
-        result = geolocator.reverse(f"{lat},{long}")
-        lat = 33.3618813
-        long = -112.1533861
-        location_id = generate_unique_location_id(lat, long, 1)
-        
-        return jsonify({
-            "Message": str(result),
-            "City": result.raw['address']['city'],
-            "State": result.raw['address']['state'],
-            "Zip": result.raw['address']['postcode'],
-            "lat:": lat,
-            "long": long,
-            "Location ID": location_id
+            "Message": f"Location id \'{escape(location_id)}\' has been removed"
         })
