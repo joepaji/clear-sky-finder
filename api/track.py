@@ -11,6 +11,7 @@ from flask_restful import Resource, request
 from geopy import Nominatim
 from extensions import db, ma, session
 from user import User
+from clouds import Clouds, add_cloud_data
 from location import get_location, generate_unique_location_id
 from exceptions import APIException
 import re
@@ -118,7 +119,7 @@ class TrackManager(Resource):
             return jsonify({
                 "Message": f"Location id {id[0]} already exists",
             })
-
+        add_cloud_data(location_id, l.lat, l.long)
         return jsonify({
             "Message": f"Inserted location id {location_id}"
         })
@@ -132,11 +133,13 @@ class TrackManager(Resource):
                 "Message": f"location_id is required"
             })
         location = session.get(Track, location_id)
+        cloud_data = session.get(Clouds, location_id)
         if not location:
             return jsonify({
                 "Message": f"Location id {escape(location_id)} does not exist in the watchlist"
             })
         session.delete(location)
+        session.delete(cloud_data)
         session.commit()
 
         return jsonify({
