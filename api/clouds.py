@@ -47,14 +47,14 @@ class CloudsManager(Resource):
     @clouds.route('/put/', methods=['PUT'])
     def update_clouds():
         try:
-            location_id = request.args['location_id']
+            user_id = request.args['id']
         except Exception as _:
             return jsonify({
                 "Message": "Location id required"
             })
-        update_cloud_data(location_id)
+        update_all_cloud_data(user_id)
         return jsonify({
-            "Message": f"Cloud data updated for location id {escape(location_id)}"
+            "Message": f"Cloud data updated for user id {escape(user_id)}"
         })
     @clouds.route('/test/', methods=['GET'])
     def test():
