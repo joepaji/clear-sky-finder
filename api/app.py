@@ -53,5 +53,5 @@ def register_blueprints(app:Flask):
 
 if __name__ == '__main__':
     app = create_app()
-    app.run(port=8000, debug=True)
+    app.run(host='0.0.0.0')
     
