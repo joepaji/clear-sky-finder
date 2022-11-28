@@ -24,7 +24,7 @@ def create_app():
     """
     app = Flask(__name__)
     db_name = 'clear_sky_finder_db'
-    app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+pymysql://{USER}:{PASSWORD}@{HOST}/{db_name}"
+    app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql+psycopg2://{USER}:{PASSWORD}@{HOST}/{db_name}"
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     register_extensions(app)
     register_blueprints(app)
