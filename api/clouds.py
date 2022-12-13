@@ -133,9 +133,9 @@ def get_cloud_data(lat, long):
     response = requests.get(API_URL, params=params) 
     data_current = response.json()['hourly']
     timestamps = []
-
+    
     # Get list of historical timestamps
-    for i in range(0, 24):
+    for i in range(18, 24):
         timestamp, historical = get_timestamp(tz1, i)
         if not historical:
             break
@@ -144,9 +144,27 @@ def get_cloud_data(lat, long):
     # Get historical cloud data in a list    
     cloud_data_list = asyncio.run(get_historical_data(timestamps, lat, long))
     
+    # If 6pm is in the future, timestamps is empty and we have to get the index of 6pm
+
+    start_index = 0
+
+    if len(timestamps) == 0:
+        six_timestamp = datetime.now(tz1).replace(hour=18, minute=0, second=0, microsecond=0).timestamp()
+        for index, item in enumerate(data_current):
+            if item['dt'] == int(six_timestamp):
+                start_index = index
+                break
+    
     # Get current and future cloud data and append to original list
-    for j in range(0, 24-i):
+    end_index = start_index + 12
+    for j in range(start_index, start_index+end_index):
         data_dict = generate_cloud_dict(data_current[j])
+        cloud_data_list.append(data_dict)
+
+    # Get next day cloud data
+    next_day_start_index =  end_index + 12
+    for k in range(next_day_start_index, next_day_start_index+13):
+        data_dict = generate_cloud_dict(data_current[k])
         cloud_data_list.append(data_dict)
     
     # Convert list to dict {hourInt: dataDict}
