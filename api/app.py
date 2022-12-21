@@ -16,6 +16,7 @@ from extensions import db, ma
 from user import user as user_bp
 from track import track as track_bp
 from clouds import clouds as clouds_bp
+from location import location as location_bp
 from exceptions import exception as exception_bp
 
 def create_app():
@@ -47,6 +48,7 @@ def register_blueprints(app:Flask):
     parent.register_blueprint(user_bp, url_prefix='/user/')
     parent.register_blueprint(track_bp, url_prefix='/track/')
     parent.register_blueprint(clouds_bp, url_prefix='/clouds/')
+    parent.register_blueprint(location_bp, url_prefix='/location/')
     parent.register_blueprint(exception_bp)
     app.register_blueprint(parent)
     return None

@@ -8,7 +8,12 @@
 Location class used to manage get location function and location object.
 This module gets and structures location data such as city,state,zip,lat,long.
 """
+from flask import Blueprint, jsonify, escape
+from flask_restful import Resource, request
+import json
 from geopy import Nominatim
+
+location = Blueprint('location', __name__, template_folder='templates')
 
 class Location:
     def __init__(self, city, state, zip, lat, long):
@@ -17,7 +22,33 @@ class Location:
         self.zip = zip
         self.lat = lat
         self.long = long
-    
+
+class LocationManager(Resource):
+    @location.route('/get', methods=['GET'])
+    def get_lat_long():
+        try:
+            city = request.args['city']
+            state = request.args['state']
+        except Exception as _:
+            return jsonify({
+                "Message": "City, State required."
+            })
+        geolocator = Nominatim(user_agent='clear-sky-finder')
+        location = geolocator.geocode(f"{city}, {state}")
+        lat = location.latitude
+        long = location.longitude
+        location = geolocator.reverse(f"{lat},{long}")
+        zip = location.raw['address']['postcode']
+        location = Location(city, state, zip, lat, long)
+
+        return {
+            'lat': lat,
+            'long': long,
+            'city': city,
+            'state': state,
+            'zip': zip
+        }
+
 def get_location(city=None, state=None, zip=None, lat=None, long=None):
     """
     Get location by zip or city and state
