@@ -12,6 +12,7 @@ from flask import Blueprint, jsonify, escape
 from flask_restful import Resource, request
 import json
 from geopy import Nominatim
+from exceptions import APIException
 
 location = Blueprint('location', __name__, template_folder='templates')
 
@@ -35,6 +36,8 @@ class LocationManager(Resource):
             })
         geolocator = Nominatim(user_agent='clear-sky-finder')
         location = geolocator.geocode(f"{city}, {state}")
+        if not location: 
+            raise APIException("City not found", 404)
         lat = location.latitude
         long = location.longitude
         location = geolocator.reverse(f"{lat},{long}")
