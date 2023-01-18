@@ -13,6 +13,7 @@ from flask_restful import Resource, request
 import json
 from geopy import Nominatim
 from exceptions import APIException
+import re
 
 location = Blueprint('location', __name__, template_folder='templates')
 
@@ -35,18 +36,36 @@ class LocationManager(Resource):
                 "Message": "City, State required."
             })
         geolocator = Nominatim(user_agent='clear-sky-finder')
-        location = geolocator.geocode(f"{city}, {state}")
-
-        if not location: 
-            raise APIException("City not found", 404)
+        location = geolocator.geocode(f"{city}, {state}", exactly_one=True, addressdetails=True)
+        location_type = location.raw['type']
+        if location_type == "administrative" or location_type == "theatre":
+            location_type = "city"
+        try:
+            cityMatch = False
+            match = re.search(city, location.raw['address'][location_type])
+            if match:
+                cityMatch = True
+            if not cityMatch != city or location.raw['address']['state'] != state: 
+              raise APIException("City not found", 404)
+        except:
+             
+            if "town" in location.raw['address']:
+                location_type = "town"
+            elif "village" in location.raw['address']:
+                location_type = "village"
+            elif "locality" in location.raw['address']:
+                location_type = "locality"
+            cityMatch = False
+            match = re.search(city, location.raw['address'][location_type])
+            if match:
+                cityMatch = True
+            if not cityMatch or location.raw['address']['state'] != state: 
+              raise APIException("City not found", 404)
+        
+       
         lat = location.latitude
         long = location.longitude
-        location = geolocator.reverse(f"{lat},{long}")
-        location_city = location.raw['address']['city']
         
-        if location_city != city: 
-            raise APIException("City not found", 404)
-
         return {
            "latitude": lat,
            "longitude": long
