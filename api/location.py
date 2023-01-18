@@ -36,20 +36,20 @@ class LocationManager(Resource):
             })
         geolocator = Nominatim(user_agent='clear-sky-finder')
         location = geolocator.geocode(f"{city}, {state}")
+
         if not location: 
             raise APIException("City not found", 404)
         lat = location.latitude
         long = location.longitude
         location = geolocator.reverse(f"{lat},{long}")
-        zip = location.raw['address']['postcode']
-        location = Location(city, state, zip, lat, long)
+        location_city = location.raw['address']['city']
+        
+        if location_city != city: 
+            raise APIException("City not found", 404)
 
         return {
-            'lat': lat,
-            'long': long,
-            'city': city,
-            'state': state,
-            'zip': zip
+           "latitude": lat,
+           "longitude": long
         }
 
 def get_location(city=None, state=None, zip=None, lat=None, long=None):
