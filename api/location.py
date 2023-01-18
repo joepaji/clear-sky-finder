@@ -34,8 +34,9 @@ class LocationManager(Resource):
             return jsonify({
                 "Message": "City, State required."
             })
-        geolocator = Nominatim(user_agent='clear-sky-finder',)
-        location = geolocator.geocode(f"{city}, {state}", exactly_one=True)
+        geolocator = Nominatim(user_agent='clear-sky-finder')
+        location = geolocator.geocode(f"{city}, {state}")
+
         if not location: 
             raise APIException("City not found", 404)
         lat = location.latitude
