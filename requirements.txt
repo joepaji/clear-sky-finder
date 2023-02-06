@@ -1,7 +1,7 @@
 Flask==2.2.2
 flask_marshmallow==0.14.0
 Flask_RESTful==0.3.9
-flask_sqlalchemy==3.0.2
+flask_sqlalchemy==3.0.3
 marshmallow_sqlalchemy==0.28.1
 geopy==2.3.0
 pyzt==1.0.1
