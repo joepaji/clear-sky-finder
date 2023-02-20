@@ -1,4 +1,4 @@
-Flask==2.2.2
+Flask==2.2.3
 flask_marshmallow==0.14.0
 Flask_RESTful==0.3.9
 flask_sqlalchemy==3.0.2
